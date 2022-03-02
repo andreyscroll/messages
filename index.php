@@ -15,17 +15,60 @@ switch (true)
 		require_once 'views/messages/create.tpl';
 	break;
 
+
+	// страница редактирования сообщения
+	case (bool) preg_match("#messages/(\d+)/edit#", $uri, $vars):
+		$title = 'Редактировать запись';
+		$id = $vars[1];
+		$data = getMessage($id);
+		require_once 'views/messages/edit.tpl';
+	break;
+
+
 	// добавление комментария
 	case (bool) preg_match("#messages/(\d+)/comment#", $uri, $vars):
-		$data = getMessage($vars[1]);
-		$title = $data['title'];
-		require_once 'views/messages/show.tpl';
+		if($httpMethod == 'POST')
+		{
+			$id = $vars[1];
+			if(saveComment($id)){
+				redirect('/messages/' . $id);
+			} else {
+				echo 'Ошибка записи комментария';
+			}
+		}
 	break;
+
+
+	// удаление сообщения
+	case (bool) preg_match("#messages/(\d+)/delete#", $uri, $vars):
+		if($httpMethod == 'POST')
+		{
+			$id = $vars[1];
+			if(deleteMessage($id)){
+				redirect('home');
+			} else {
+				echo 'Ошибка удаления';
+			}
+		}
+	break;
+
 
 	// страница сообщения
 	case (bool) preg_match("#messages/(\d+)#", $uri, $vars):
-		$data = getMessage($vars[1]);
-		$comments = getComments($vars[1]);
+		// обновление сообщения, если пришел POST
+		if($httpMethod == 'POST')
+		{
+			$id = $vars[1];
+			if(updateMessage($id)){
+				redirect('/messages/' . $id . '/edit');
+			} else {
+				echo 'Ошибка обновления';
+			}
+		}
+
+		$id = $vars[1];
+		$data = getMessage($id);
+		$comments = getComments($id);
 		$title = $data['title'];
 		require_once 'views/messages/show.tpl';
 	break;
@@ -33,7 +76,7 @@ switch (true)
 
 	// Главная страница. Список сообщений
 	case (bool) preg_match("##", $uri):
-
+		// добавляем сообщение, если пришел POST
 		if($httpMethod == 'POST'){
 			if(setMessage()){
 				redirect('home');

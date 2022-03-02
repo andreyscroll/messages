@@ -47,3 +47,42 @@ function setMessage()
 			':content' => $_POST['content']
 		]);
 }
+
+function updateMessage($id)
+{
+	global $db;
+	$stmt = $db->prepare('UPDATE messages SET title = :title, author = :author, summary = :summary, content = :content
+		WHERE id = :id');
+	return $stmt->execute([
+			':title' => $_POST['title'],
+			':author' => $_POST['author'],
+			':summary' => $_POST['summary'],
+			':content' => $_POST['content'],
+			':id' => $id,
+		]);
+}
+
+function deleteMessage($id)
+{
+	global $db;
+	$stmt = $db->prepare('DELETE FROM messages WHERE id = :id');
+	return $stmt->execute([':id' => $id]);
+}
+
+function saveComment($id)
+{
+	global $db;
+	$stmt = $db->prepare('INSERT INTO comments (comment, message_id) VALUES (:comment, :message_id)');
+	return $stmt->execute([
+		':comment' => $_POST['comment'],
+		':message_id' => $id,
+	]);
+}
+
+function getComments($id)
+{
+	global $db;
+	$stmt = $db->prepare('SELECT * FROM comments WHERE message_id = :id');
+	$stmt->execute([':id' => $id]);
+	return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
